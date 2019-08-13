@@ -189,14 +189,17 @@ void SDLC_Component::setListener(Handler handler) {
 }
 
 void SDLC_Component::display() {
+    updateSurface();
     ondraw(surface);
     SDLC_Component *tmp = this->child;
     while(tmp) {
         tmp->display();
         tmp = tmp->brother;
     }
+
     SDL_Rect ps = {x,y,width,height};
     if(isvisible){
+
         SDL_Surface* dest; 
         SDLC_Component *parent_ = header()->parent;
         if(parent_){
@@ -251,22 +254,17 @@ void SDLC_Component::updateSurface() {
 void SDLC_Component::setPostion(int x,int y) {
     this->x = x;
     this->y = y;
-    if(parent) {
-        parent ->updateSurface();
-        parent ->display();
-    }
+    SDLC_Component *hd = header();
+    context->shouldRepatint = true;
 }
 
 void SDLC_Component::setSize(int width,int height) {
-
     SDL_Surface *tmp = surface;
     surface = SDL_CreateRGBSurface(0,width,height,32,rmask,gmask,bmask,amask);
     SDL_SetSurfaceBlendMode(surface,SDL_BLENDMODE_BLEND);
-
-    updateSurface();
     this->width = width;
     this->height = height;
-    display();
+    context->shouldRepatint = true;
     SDL_FreeSurface(tmp);
 }
 
@@ -351,7 +349,8 @@ SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h):SD
 SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h,Uint32 bg) :
                                                         id(0),
                                                         x(x),y(y),width(w),height(h),
-                                                        isvisible(true),upLock(0),
+                                                        isvisible(true),
+                                                        upLock(0),
                                                         context(context),
                                                         brother(NULL),prebrother(NULL),
                                                         child(NULL),parent(NULL),

@@ -3,12 +3,14 @@
 
 #include"iostream"
 void Image::ondraw(SDL_Surface* surface) {
-   if(img) {
-        updateSurface();
+}
+
+void Image::updateSurface() {
+    SDLC_Component::updateSurface();
+    if(img) {
         SDL_BlitSurface(img,NULL,surface,NULL);
     }
 }
-
 
 void Image::load(char name[]) {
     img = IMG_Load(name);

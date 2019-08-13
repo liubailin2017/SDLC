@@ -11,7 +11,7 @@ private :
     int status[10];
     /*用于生成id,使id不重复 */
     int cid;
-
+    bool shouldRepatint;
     int width;
     int height;
     SDL_Surface *surface;
@@ -25,6 +25,7 @@ public:
     int generateId();
     bool fliterEvent(const SDL_Event& event);
     bool dispatch(const SDL_Event& event);
+    void update();
 
     SDLC_Component* addComponent(SDLC_Component *component);
     SDLC_Component *findById(int id);

@@ -1,7 +1,7 @@
 #include "SDLC_Context.h"
 #include"SDLC_Component.h"
 #include"SDLC_log.h"
-
+#include"iostream"
 bool isContain(int x ,int y,int rx,int ry, int rw,int rh) { 
     if(x > rx && x < rx + rw && y > ry && y < ry + rh) {
         return true;
@@ -61,6 +61,10 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                         curCmp = NULL;
                     }
                 }
+                break;
+        case SDL_WINDOWEVENT:
+                shouldRepatint = true;
+                std::cout<<"repaint"<<std::endl;
                 break;
         default:
                 break;
@@ -142,12 +146,8 @@ void SDLC_Context::setListener(HandleFun handler) {
     onhandle = handler;
 }
 
-SDLC_Context::SDLC_Context(SDL_Window *w) :
-                                        cid(1),window(w),
-                                        components(NULL),curCmp(NULL),curMvCmp(NULL),
-                                        onhandle(NULL)
-                                         {
-        if(!(surface = SDL_GetWindowSurface(w))) {
+void SDLC_Context::update() {
+        if(!(surface = SDL_GetWindowSurface(window))) {
             SDLC_LOG_.notice(_2C "Construct of SDLC_Context have a err");
         };
         
@@ -159,15 +159,29 @@ SDLC_Context::SDLC_Context(SDL_Window *w) :
             width = 0;
             height = 0;
         }
-        
+}
+
+SDLC_Context::SDLC_Context(SDL_Window *w) :
+                                        shouldRepatint(false),
+                                        cid(1),window(w),
+                                        components(NULL),curCmp(NULL),curMvCmp(NULL),
+                                        onhandle(NULL)
+                                         {
+    update();
 }
 #include<string.h>
 void SDLC_Context::updateWindow() {
+
+    if(!shouldRepatint){
+        return ;
+    }
+    update();
     memset(surface->pixels,0,surface->h*surface->pitch);
     SDLC_Component *tmp = this->components;
     while(tmp) {
         tmp->display();
         tmp = tmp->brother;
     }
+    shouldRepatint = false;
     SDL_UpdateWindowSurface(window);
 }

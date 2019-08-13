@@ -16,7 +16,7 @@ int main(int argc ,char *argv[])
                                         SDL_WINDOWPOS_UNDEFINED,
                                         SDL_WINDOWPOS_UNDEFINED,
                                         960,640,
-                                        SDL_WINDOW_SHOWN);
+                                        SDL_WINDOW_RESIZABLE);
 
    // SDL_Surface* win_sur = SDL_GetWindowSurface(win);
     SDL_Event event;
@@ -60,16 +60,11 @@ int main(int argc ,char *argv[])
           if(SDL_PollEvent(&event)){
                switch(event.type)
                {
-                    case SDL_MOUSEBUTTONUP:
-                    case SDL_MOUSEMOTION:
-                    case SDL_MOUSEBUTTONDOWN:                          
-                    context.dispatch(event);
-                    break;
-
                     case SDL_QUIT :
                     isquit = 1;
                     break;
                }
+               context.dispatch(event);
           }
 
           if(SDL_GetTicks() - ticket > 15) {
