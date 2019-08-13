@@ -1,7 +1,6 @@
 
-.o
-.out
-build
-.vscode
-.dll
-CMakeFile
+*.o
+*.out
+*.vscode
+*.dll
+/CMakeFile
