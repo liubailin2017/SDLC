@@ -1,0 +1,7 @@
+SDLC_Context
+    窗口关连
+    更新窗口
+    产生事件 (点击事件（up down move)，窗口大小事件,键盘事件)
+
+    1 up事件绑定到down事件
+    2 move 事件 和down事件 等效分发
