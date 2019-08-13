@@ -6,7 +6,7 @@
 
 extern bool isContain(int x ,int y,int rx,int ry, int rw,int rh);
 
-bool defaulthandler(SDL_Event event,SDLC_Component *cmp) {
+bool defaulthandler(const SDL_Event& event,SDLC_Component *cmp) {
 //    if(event.type == SDL_MOUSEBUTTONDOWN) {
 //         std::cout <<"DOWN id:"<<cmp->getId()<<std::endl;
 //    }
@@ -20,8 +20,8 @@ bool defaulthandler(SDL_Event event,SDLC_Component *cmp) {
 }
 
 bool defaultOutHandler(SDLC_Component *cmp) {
-    std::cout << "Out of ID:"<< cmp->getId() <<std::endl;
-   return true;
+    //std::cout << "Out of ID:"<< cmp->getId() <<std::endl;
+    return true;
 }
 
 void SDLC_Component::ondraw(SDL_Surface* surface) {
@@ -254,7 +254,6 @@ void SDLC_Component::updateSurface() {
 void SDLC_Component::setPostion(int x,int y) {
     this->x = x;
     this->y = y;
-    SDLC_Component *hd = header();
     context->shouldRepatint = true;
 }
 

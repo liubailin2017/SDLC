@@ -49,8 +49,8 @@ int main(int argc ,char *argv[])
      c3.setMovable(true);
      c2.setMovable(true);
      c5.setMovable(true);
-     c2.load("test.jpg");
-     c2_1.load("test.png");
+     c2.load("test.png");
+     c2_1.load("test.jpg");
      c2.addComponent(&c2_1);
      c2_1.setMovable(true);
     int ticket = SDL_GetTicks();
@@ -67,11 +67,11 @@ int main(int argc ,char *argv[])
                context.dispatch(event);
           }
 
-          if(SDL_GetTicks() - ticket > 15) {
+     if(SDL_GetTicks() - ticket > 15) {
                context.updateWindow();  
                ticket = SDL_GetTicks();
-          }
-         // SDL_Delay(10);           
+     }
+     SDL_Delay(1);           
     }
     return 0;
 }

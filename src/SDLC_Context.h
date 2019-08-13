@@ -5,13 +5,13 @@ class SDLC_Component;
 
 class SDLC_Context;
 typedef bool (*HandleFun)(SDL_Event event,SDLC_Context *context);
-
+typedef void (*UpdateBg)(SDL_Surface* surface);
 class SDLC_Context {
 private :
     int status[10];
     /*用于生成id,使id不重复 */
-    int cid;
     bool shouldRepatint;
+    int cid;
     int width;
     int height;
     SDL_Surface *surface;
@@ -19,7 +19,7 @@ private :
     SDLC_Component *components;
     SDLC_Component *curCmp;
     SDLC_Component *curMvCmp;
-
+    UpdateBg updateBg;
     HandleFun onhandle;
 public:
     int generateId();
@@ -31,9 +31,10 @@ public:
     SDLC_Component *findById(int id);
     SDLC_Component *removeById(int id);
     void setListener(HandleFun handler);
+    void setListener(UpdateBg handler);
 
     SDLC_Context(SDL_Window *w);
-
+    void notifyUpdate();
     void updateWindow();
     friend class SDLC_Component;
 };

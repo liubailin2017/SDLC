@@ -64,7 +64,6 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                 break;
         case SDL_WINDOWEVENT:
                 shouldRepatint = true;
-                std::cout<<"repaint"<<std::endl;
                 break;
         default:
                 break;
@@ -87,7 +86,7 @@ SDLC_Component *SDLC_Context::addComponent(SDLC_Component *component) {
         if(component ->id) {
             SDLC_LOG_.log(_2C "The component have consisted in context:");
             SDLC_LOG_.log(component->id);
-            SDLC_LOG_.notice("");
+            SDLC_LOG_.notice(_2C "");
             return NULL;
         }
         
@@ -145,6 +144,9 @@ SDLC_Component* SDLC_Context::removeById(int id) {
 void SDLC_Context::setListener(HandleFun handler) {
     onhandle = handler;
 }
+void SDLC_Context::setListener(UpdateBg handler) {
+    updateBg = handler;
+}
 
 void SDLC_Context::update() {
         if(!(surface = SDL_GetWindowSurface(window))) {
@@ -165,7 +167,7 @@ SDLC_Context::SDLC_Context(SDL_Window *w) :
                                         shouldRepatint(false),
                                         cid(1),window(w),
                                         components(NULL),curCmp(NULL),curMvCmp(NULL),
-                                        onhandle(NULL)
+                                        updateBg(NULL),onhandle(NULL)
                                          {
     update();
 }
@@ -176,7 +178,11 @@ void SDLC_Context::updateWindow() {
         return ;
     }
     update();
-    memset(surface->pixels,0,surface->h*surface->pitch);
+    if(updateBg) {
+        updateBg(surface);
+    }else { 
+        memset(surface->pixels,0,surface->h*surface->pitch);
+    }
     SDLC_Component *tmp = this->components;
     while(tmp) {
         tmp->display();
@@ -184,4 +190,8 @@ void SDLC_Context::updateWindow() {
     }
     shouldRepatint = false;
     SDL_UpdateWindowSurface(window);
+}
+void SDLC_Context::notifyUpdate() {
+    updateWindow();
+    shouldRepatint = true;
 }
