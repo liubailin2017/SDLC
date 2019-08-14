@@ -27,7 +27,6 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                     return true;
                 }
                 break;
-
         case    SDL_MOUSEMOTION:
                 if(curMvCmp) {
                     int x,y;
@@ -82,24 +81,23 @@ int SDLC_Context::generateId() {
 }
 
 SDLC_Component *SDLC_Context::addComponent(SDLC_Component *component) {
-        if(!component) return NULL;
-        if(component ->id) {
-            SDLC_LOG_.log(_2C "The component have consisted in context:");
-            SDLC_LOG_.log(component->id);
-            SDLC_LOG_.notice(_2C "");
-            return NULL;
-        }
-        
-        component->id = SDLC_Context::generateId();
-        if(components) {
-            SDLC_Component *node = components->rear();
-            node->setbrother(component);
-        }else {
-            component->prebrother = NULL;
-            component->parent = NULL;
-            components = component;
-        }
-        return component;
+    if(!component) return NULL;
+    if(component ->id) {
+        SDLC_LOG_.log(_2C "The component have consisted in context:");
+        SDLC_LOG_.log(component->id);
+        SDLC_LOG_.notice(_2C "");
+        return NULL;
+    }
+    component->id = SDLC_Context::generateId();
+    if(components) {
+        SDLC_Component *node = components->rear();
+        node->setbrother(component);
+    }else {
+        component->prebrother = NULL;
+        component->parent = NULL;
+        components = component;
+    }
+    return component;
 }
 
 SDLC_Component *SDLC_Context::findById(int id) {
@@ -152,12 +150,12 @@ void SDLC_Context::update() {
         if(!(surface = SDL_GetWindowSurface(window))) {
             SDLC_LOG_.notice(_2C "Construct of SDLC_Context have a err");
         };
-        
+
         if(surface) {
            width = surface->w;
-           height = surface->h; 
-        }else
-        {
+           height = surface->h;
+        } 
+        else{
             width = 0;
             height = 0;
         }
@@ -166,21 +164,22 @@ void SDLC_Context::update() {
 SDLC_Context::SDLC_Context(SDL_Window *w) :
                                         shouldRepatint(false),
                                         cid(1),window(w),
-                                        components(NULL),curCmp(NULL),curMvCmp(NULL),
-                                        updateBg(NULL),onhandle(NULL)
-                                         {
+                                        components(NULL),
+                                        curCmp(NULL),curMvCmp(NULL),focusCmp(NULL),
+                                        updateBg(NULL),onhandle(NULL),
+                                        interval(0),intervalc(0),
+                                        strickHandler(NULL){
     update();
 }
 #include<string.h>
 void SDLC_Context::updateWindow() {
-
     if(!shouldRepatint){
         return ;
     }
     update();
     if(updateBg) {
         updateBg(surface);
-    }else { 
+    }else {
         memset(surface->pixels,0,surface->h*surface->pitch);
     }
     SDLC_Component *tmp = this->components;
@@ -191,7 +190,21 @@ void SDLC_Context::updateWindow() {
     shouldRepatint = false;
     SDL_UpdateWindowSurface(window);
 }
+
 void SDLC_Context::notifyUpdate() {
-    updateWindow();
     shouldRepatint = true;
+}
+void SDLC_Context::strick() {
+    SDLC_Component *tmp = components;
+    while(tmp) {
+        tmp->strick();
+        tmp = tmp->brother;
+    }
+    if(interval == 0 || !strickHandler)
+        return;
+    if(!intervalc) {
+        strickHandler(NULL);
+    }
+    intervalc += 1;
+    intervalc %= interval;
 }

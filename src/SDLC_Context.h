@@ -1,6 +1,7 @@
 #ifndef _h_SDLC_Context
 #define _h_SDLC_Context
 #include<SDL2/SDL.h>
+#include"SDLC_Event.h"
 class SDLC_Component;
 
 class SDLC_Context;
@@ -19,8 +20,12 @@ private :
     SDLC_Component *components;
     SDLC_Component *curCmp;
     SDLC_Component *curMvCmp;
+    SDLC_Component *focusCmp;
     UpdateBg updateBg;
     HandleFun onhandle;
+    StrickHandler strickHandler;
+    int interval;
+    int intervalc;
 public:
     int generateId();
     bool fliterEvent(const SDL_Event& event);
@@ -32,10 +37,13 @@ public:
     SDLC_Component *removeById(int id);
     void setListener(HandleFun handler);
     void setListener(UpdateBg handler);
+    void setInterval(int i,StrickHandler h);
 
     SDLC_Context(SDL_Window *w);
     void notifyUpdate();
     void updateWindow();
+
+    void strick();
     friend class SDLC_Component;
 };
 

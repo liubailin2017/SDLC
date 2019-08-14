@@ -28,9 +28,12 @@ protected:
 
     Handler mouseButtonHandler;
     OutHandler outHandler;
-
+    StrickHandler strickHandler;
     Uint32 bgcolor;
     bool _movable;
+
+    int intervalc;
+    int interval;
 public:
 
     int abx();
@@ -45,6 +48,8 @@ public:
 
     bool movable();
     void setMovable(bool v);
+    void setInterval(int i,StrickHandler h);
+    void strick();
     int getId();
     /* api */
     bool fliterEvent(const SDL_Event& event) ;
@@ -67,6 +72,7 @@ public:
 
     virtual void ondraw(SDL_Surface* surface);
     virtual void updateSurface();
+
     void display();
     virtual SDLC_Component *findById(int id);
     virtual SDLC_Component *removeById(int id);

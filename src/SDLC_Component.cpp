@@ -355,8 +355,9 @@ SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h,Uin
                                                         child(NULL),parent(NULL),
                                                         mouseButtonHandler(defaulthandler),
                                                         outHandler(defaultOutHandler),
-                                                        bgcolor(bg),_movable(false)
-                                                        
+                                                        strickHandler(NULL),
+                                                        bgcolor(bg),_movable(false),
+                                                        intervalc(0),interval(0)
 {
     int    rmask = 0x000000ff;
     int    gmask = 0x0000ff00;
@@ -390,3 +391,28 @@ int SDLC_Component::getX() { return x; }
 int SDLC_Component::getY() { return y; }
 int SDLC_Component::getWidth() { return width; }
 int SDLC_Component::getHeight() { return height; }
+
+/**
+ * magic  i == i + 1 
+ * */
+void SDLC_Component::setInterval(int i,StrickHandler h) {
+    if(i >= -1) {
+        interval = i+1;
+        strickHandler = h;
+    }
+}
+
+void SDLC_Component::strick() {
+    SDLC_Component *tmp = this->child;
+    while(tmp) {
+        tmp->strick();
+        tmp = tmp->brother;
+    }
+    if(interval == 0 || !strickHandler)
+        return;
+    if(!intervalc) {
+        strickHandler(this);
+    }
+    intervalc += 1;
+    intervalc %= interval;
+}

@@ -8,6 +8,13 @@
 int w = 50;
 
 #include"string"
+void onstrick(SDLC_Component *cmp) {
+     if(cmp){
+          std::cout <<"strick id:"<<cmp->getId() <<std::endl;
+     }else {
+          std::cout << "strick id:context" <<std::endl;
+     }
+}
 int main(int argc ,char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -24,17 +31,17 @@ int main(int argc ,char *argv[])
     
     SDLC_Context context(win);
 
-    SDLC_Component c(&context, 100,  100,50,50);
+    SDLC_Component c(&context, 0,  0,50,50);
     
-    Image c2(&context,400,0,100,100);
-     Image c2_1(&context,400,0,100,100);
+    Image c2(&context,0,0,100,100);
+     Image c2_1(&context,0,0,100,100);
     
-    SDLC_Component c3(&context,150,150,200,200,0xffff00ff);
+    SDLC_Component c3(&context,0,0,200,200,0xffff00ff);
     
     SDLC_Component *c4 = new SDLC_Component(&context,0,0,300,300,0x7000ff00);
     
-    SDLC_Component c5(&context,50,50,200,20,  0xff0000ff);
-    SDLC_Component c6(&context,50,100,200,20,  0xff0000ff);
+    SDLC_Component c5(&context,0,50,200,20,  0xff0000ff);
+    SDLC_Component c6(&context,0,100,200,20,  0xff0000ff);
  
     context.addComponent(&c2);
 
@@ -49,12 +56,13 @@ int main(int argc ,char *argv[])
      c3.setMovable(true);
      c2.setMovable(true);
      c5.setMovable(true);
-     c2.load("test.png");
-     c2_1.load("test.jpg");
+     c2.load("test.jpg");
+     c2_1.load("test.png");
      c2.addComponent(&c2_1);
      c2_1.setMovable(true);
+     c2.setInterval(100,onstrick);
+     c2_1.setInterval(10,onstrick);
     int ticket = SDL_GetTicks();
-
     while(!isquit)
     {
           if(SDL_PollEvent(&event)){
@@ -70,6 +78,7 @@ int main(int argc ,char *argv[])
      if(SDL_GetTicks() - ticket > 15) {
                context.updateWindow();  
                ticket = SDL_GetTicks();
+               context.strick();
      }
      SDL_Delay(1);           
     }
