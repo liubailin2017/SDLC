@@ -16,7 +16,7 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
         case    SDL_MOUSEBUTTONUP:
                 if(curMvCmp) {
                     curMvCmp = NULL;
-                    return true;
+                //    return true;
                 }
                 if(components && components->dispatchMouseButton(event)) {
                     return true;
@@ -55,10 +55,14 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                 if(components && components->dispatchMouseMotion(event)) {
                     return true;
                 }else {
-                    if(curCmp) {
-                        curCmp->outHandler(curCmp);
-                        curCmp = NULL;
+                    SDLC_Component *t = curCmp;
+                    if(t) {
+                        while(t){
+                            if(t->outHandler) t->outHandler(t);
+                            t = t->header()->parent;
+                        }
                     }
+                    curCmp = NULL;
                 }
                 break;
         case SDL_WINDOWEVENT:
@@ -127,9 +131,6 @@ SDLC_Component* SDLC_Context::removeById(int id) {
                 tmp -> brother ->parent = NULL;
                 tmp -> brother->prebrother = NULL;
             }
-            tmp->brother = NULL;
-            tmp->parent = NULL;
-            tmp->prebrother = NULL;
         }
     }
     tmp->parent = NULL;
@@ -166,9 +167,9 @@ SDLC_Context::SDLC_Context(SDL_Window *w) :
                                         cid(1),window(w),
                                         components(NULL),
                                         curCmp(NULL),curMvCmp(NULL),focusCmp(NULL),
-                                        updateBg(NULL),onhandle(NULL),
-                                        interval(0),intervalc(0),
-                                        strickHandler(NULL){
+                                        updateBg(NULL),onhandle(NULL),strickHandler(NULL),
+                                        interval(0),intervalc(0)
+                                        {
     update();
 }
 #include<string.h>

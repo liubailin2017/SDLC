@@ -3,6 +3,10 @@
 #include"SDLC_Component.h"
 #include"SDLC_Context.h"
 #include"SDLC_log.h"
+static int    rmask = 0x000000ff;
+static int    gmask = 0x0000ff00;
+static int    bmask = 0x00ff0000;
+static int    amask = 0xff000000;
 
 extern bool isContain(int x ,int y,int rx,int ry, int rw,int rh);
 
@@ -18,22 +22,37 @@ bool defaulthandler(const SDL_Event& event,SDLC_Component *cmp) {
 //    }
    return true;
 }
-
 bool defaultOutHandler(SDLC_Component *cmp) {
-    //std::cout << "Out of ID:"<< cmp->getId() <<std::endl;
+    // std::cout << "out of ID:"<< cmp->getId() <<std::endl;
     return true;
 }
 
-void SDLC_Component::ondraw(SDL_Surface* surface) {
+bool defaultInHandler(SDLC_Component *cmp) {
+    // std::cout << "into ID:"<< cmp->getId() <<std::endl;
+    return true;
+}
+
+// void SDLC_Component::ondraw(SDL_Surface* surface) {
  
+// }
+SDLC_Context* SDLC_Component::_context() {
+    return context;
 }
 
 bool SDLC_Component::movable() {
     return _movable;
 }
-
 void SDLC_Component::setMovable(bool v) {
     _movable = v;
+}
+void SDLC_Component::setRaise(bool v) {
+    canRaise = v;
+}
+void SDLC_Component::setbgcolor(Uint32 bg) {
+    this ->bgcolor = bg;
+}
+Uint32 SDLC_Component::getBgcolor() {
+    return bgcolor;
 }
 
 int SDLC_Component::abx() {
@@ -152,11 +171,33 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
     if(fliterEvent(event)) {
 
         if(event.type == SDL_MOUSEMOTION) {
-            if(context->curCmp) {
-                if(context->curCmp != this) {
-                    OutHandler h =  context->curCmp -> outHandler;
-                    if(h) { h(context->curCmp); }
+            SDLC_Component *t = context->curCmp;
+
+            if(t) {
+                while(t && ! t->findById(id)){
+                    if(t->outHandler) t->outHandler(t);
+                    t = t->header()->parent;
                 }
+            }
+
+            t = context->curCmp;
+            SDLC_Component * t_ = this;
+            while(t_) {
+                // if(t){
+                //     if(! t_->findById(t->id)) {         
+                //         break;
+                //     }else {
+                //         if(t->inHandler) t->inHandler(t);
+                //     }
+                // }else {
+                //       if(t->inHandler) t->inHandler(t);
+                // }
+                if(t && t_->findById(t->id)) {       
+                    break;
+                }else {
+                    if(t_->inHandler) t_->inHandler(t_);
+                }
+                t_ = t_->header()->parent;
             }
             context ->curCmp = this;
         }
@@ -180,8 +221,11 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
     return result;
 }
 
-void SDLC_Component::setListener(OutHandler handler) {
+void SDLC_Component::setOutHandler(OutHandler handler) {
     SDLC_Component::outHandler = handler;
+}
+void SDLC_Component::setInHandler(InHandler handler) {
+    SDLC_Component::inHandler = handler;
 }
 
 void SDLC_Component::setListener(Handler handler) {
@@ -190,7 +234,7 @@ void SDLC_Component::setListener(Handler handler) {
 
 void SDLC_Component::display() {
     updateSurface();
-    ondraw(surface);
+//  ondraw(surface);
     SDLC_Component *tmp = this->child;
     while(tmp) {
         tmp->display();
@@ -199,7 +243,6 @@ void SDLC_Component::display() {
 
     SDL_Rect ps = {x,y,width,height};
     if(isvisible){
-
         SDL_Surface* dest; 
         SDLC_Component *parent_ = header()->parent;
         if(parent_){
@@ -234,10 +277,7 @@ SDLC_Component* SDLC_Component::header()
     return tmp;
 }
 
-static int    rmask = 0x000000ff;
-static int    gmask = 0x0000ff00;
-static int    bmask = 0x00ff0000;
-static int    amask = 0xff000000;
+
 
 void SDLC_Component::updateSurface() {
     if(SDL_MUSTLOCK(surface)) {
@@ -330,14 +370,21 @@ SDLC_Component* SDLC_Component::removeById(int id) {
     SDLC_Component *tmp = findById(id);
     if(tmp == NULL) return NULL;
     if(tmp->prebrother) {
-        tmp->prebrother->setchild(tmp->brother);
+        tmp->prebrother->setbrother(tmp->brother);
     }else {
         if(tmp->parent) {
             tmp->parent->setchild(tmp->brother);
         }else {
-            tmp = context->removeById(id);
+            context->components = tmp->brother;
+            if(tmp->brother) {
+                tmp->brother -> parent = NULL;
+                tmp->brother -> prebrother = NULL;
+            }
         }
     }
+    tmp->brother = NULL;
+    tmp->parent = NULL;
+    tmp->prebrother = NULL;
     tmp->id = 0;
     return tmp;
 }
@@ -354,15 +401,12 @@ SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h,Uin
                                                         brother(NULL),prebrother(NULL),
                                                         child(NULL),parent(NULL),
                                                         mouseButtonHandler(defaulthandler),
-                                                        outHandler(defaultOutHandler),
+                                                        outHandler(defaultOutHandler),inHandler(defaultInHandler),
                                                         strickHandler(NULL),
                                                         bgcolor(bg),_movable(false),
-                                                        intervalc(0),interval(0)
+                                                        intervalc(0),interval(0),
+                                                        canRaise(true)
 {
-    int    rmask = 0x000000ff;
-    int    gmask = 0x0000ff00;
-    int    bmask = 0x00ff0000;
-    int    amask = 0xff000000;
     surface = SDL_CreateRGBSurface(0,width,height,32,rmask,gmask,bmask,amask);
     SDL_SetSurfaceBlendMode(surface,SDL_BLENDMODE_BLEND);
 
@@ -415,4 +459,34 @@ void SDLC_Component::strick() {
     }
     intervalc += 1;
     intervalc %= interval;
+}
+
+void SDLC_Component::raise() {
+    SDLC_Component* _parent = header()->parent;
+    if(_parent){
+        _parent->raise();
+    }
+    if(!canRaise) return ;
+    SDLC_Component *tag = rear();
+    if(tag->id == id) return ;
+  
+    if(this->prebrother) {
+        this->prebrother->setbrother(this->brother);
+    }else {
+        if(this->parent) {
+            this->parent->setchild(this->brother);
+        }else {
+            context->components = this->brother;
+            if(this->brother) {
+                this->brother -> parent = NULL;
+                this->brother -> prebrother = NULL;
+            }
+        }
+    }
+    this->brother = NULL;
+    this->parent = NULL;
+    this->prebrother = NULL;
+    
+    tag->setbrother(this);
+    context->notifyUpdate();
 }

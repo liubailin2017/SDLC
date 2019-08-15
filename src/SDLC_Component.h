@@ -28,12 +28,16 @@ protected:
 
     Handler mouseButtonHandler;
     OutHandler outHandler;
+    InHandler inHandler;
     StrickHandler strickHandler;
     Uint32 bgcolor;
     bool _movable;
 
     int intervalc;
     int interval;
+    
+    bool canRaise;
+
 public:
 
     int abx();
@@ -42,13 +46,20 @@ public:
     int getY();
     int getWidth();
     int getHeight();
-    
+    SDLC_Context* _context();
     SDLC_Component* rear();
     SDLC_Component* header();
 
     bool movable();
+    void setbgcolor(Uint32 bg);
+    Uint32 getBgcolor();
     void setMovable(bool v);
+    void setRaise(bool v);
     void setInterval(int i,StrickHandler h);
+    void setListener(Handler handler);
+    void setOutHandler(OutHandler outHandler);
+    void setInHandler(InHandler outHandler);
+
     void strick();
     int getId();
     /* api */
@@ -57,8 +68,6 @@ public:
     bool dispatchMouseMotion(const SDL_Event& event);
     bool handleEvent(const SDL_Event& event);
 
-    void setListener(Handler handler);
-    void setListener(OutHandler outHandler);
 
     virtual bool visible();
     virtual void setvisible(bool isvisible);
@@ -70,12 +79,14 @@ public:
     virtual void setPostion(int x,int y);
     virtual void setSize(int width,int height);
 
-    virtual void ondraw(SDL_Surface* surface);
+//    virtual void ondraw(SDL_Surface* surface);
     virtual void updateSurface();
 
     void display();
     virtual SDLC_Component *findById(int id);
     virtual SDLC_Component *removeById(int id);
+
+    virtual void raise();
 
     SDLC_Component(SDLC_Context *context);
     SDLC_Component(SDLC_Context *context,int w,int d);
