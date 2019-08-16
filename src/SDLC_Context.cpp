@@ -52,13 +52,14 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                     curMvCmp->setPostion(x,y);
                     return true;
                 }
+
                 if(components && components->dispatchMouseMotion(event)) {
                     return true;
                 }else {
                     SDLC_Component *t = curCmp;
                     if(t) {
                         while(t){
-                            if(t->outHandler) t->outHandler(t);
+                            t->defaultOutHandler(t);
                             t = t->header()->parent;
                         }
                     }

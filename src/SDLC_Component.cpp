@@ -10,31 +10,40 @@ static int    amask = 0xff000000;
 
 extern bool isContain(int x ,int y,int rx,int ry, int rw,int rh);
 
-bool defaulthandler(const SDL_Event& event,SDLC_Component *cmp) {
-//    if(event.type == SDL_MOUSEBUTTONDOWN) {
-//         std::cout <<"DOWN id:"<<cmp->getId()<<std::endl;
-//    }
-//    if(event.type == SDL_MOUSEBUTTONUP) { 
-//         std::cout <<"UP id:"<<cmp->getId()<<std::endl;
-//    }
-//    if(event.type == SDL_MOUSEMOTION) {
-//        std::cout << "MOTION ID:"<< cmp->getId() <<std::endl;
-//    }
-   return true;
-}
-bool defaultOutHandler(SDLC_Component *cmp) {
-    // std::cout << "out of ID:"<< cmp->getId() <<std::endl;
-    return true;
+bool SDLC_Component::defaultmouseButtonHandler(const SDL_Event& event,SDLC_Component *cmp) {
+
+
+    if(mouseButtonHandler &&  mouseButtonHandler(event,this)) {
+    if(event.type == SDL_MOUSEBUTTONDOWN) {
+        std::cout <<"DOWN id:"<<cmp->getId()<<std::endl;
+    }
+    if(event.type == SDL_MOUSEBUTTONUP) { 
+        std::cout <<"UP id:"<<cmp->getId()<<std::endl;
+    }
+    // if(event.type == SDL_MOUSEMOTION) {
+    //    std::cout << "MOTION ID:"<< cmp->getId() <<std::endl;
+    // }
+        return true;
+    }else {
+        return false;
+    }
 }
 
-bool defaultInHandler(SDLC_Component *cmp) {
-    // std::cout << "into ID:"<< cmp->getId() <<std::endl;
-    return true;
+void SDLC_Component::defaultOutHandler(SDLC_Component *cmp) {
+    std::cout << "out of ID:"<< cmp->getId() <<std::endl;
+    if(cmp->outHandler) outHandler(cmp);
 }
 
-// void SDLC_Component::ondraw(SDL_Surface* surface) {
- 
-// }
+void SDLC_Component::defaultInHandler(SDLC_Component *cmp) {   
+    std::cout << "into ID:"<< cmp->getId() <<std::endl;
+    if(cmp->inHandler) inHandler(cmp);
+}
+
+void SDLC_Component::defaultStrickHandler(SDLC_Component *cmp) {
+    if(strickHandler)
+        strickHandler(this);
+}
+
 SDLC_Context* SDLC_Component::_context() {
     return context;
 }
@@ -72,6 +81,7 @@ int SDLC_Component::aby() {
         return y;
     }
 }
+
 bool  SDLC_Component::dispatchMouseMotion(const SDL_Event& event) {
     if(brother) {
         if(brother -> dispatchMouseMotion(event)) {
@@ -82,8 +92,8 @@ bool  SDLC_Component::dispatchMouseMotion(const SDL_Event& event) {
     int bx = event.motion.x,by = event.motion.y;
     int tx = abx(),ty = aby();
 
-    if(child ) {
-        if( isContain(bx,by,tx,ty,width,height)) {
+    if(child) {
+        if(isContain(bx,by,tx,ty,width,height)) {
             if(child -> dispatchMouseMotion(event)) {
                 return true;
             }
@@ -122,8 +132,6 @@ bool SDLC_Component::dispatchMouseButton(const SDL_Event& event) {
     return false;
 }
 
-
-/*this funtion may have bug */
 bool SDLC_Component::fliterEvent(const SDL_Event& event) {
     int bx = 0,by = 0;
     int tx = 0,ty = 0;
@@ -137,14 +145,12 @@ bool SDLC_Component::fliterEvent(const SDL_Event& event) {
         if(isContain(bx,by,tx,ty,width,height)) {
             bufp = (Uint32 *)surface->pixels + (bx-tx) + (by-ty) * surface->pitch/4;
             if(*bufp & 0xff000000) {
-                upLock = event.button.button;
                 return true;
             }
         }
     }
 
     if(event.type == SDL_MOUSEBUTTONUP && upLock == event.button.button) {
-        upLock = 0;
         return true;
     }
 
@@ -156,7 +162,6 @@ bool SDLC_Component::fliterEvent(const SDL_Event& event) {
         if(isContain(bx,by,tx,ty,width,height)) {
             bufp = (Uint32 *)surface->pixels + (bx-tx) + (by-ty) * surface->pitch/4;
             if(*bufp & 0xff000000) {
-                upLock = event.button.button;
                 return true;
             }
         }
@@ -168,14 +173,14 @@ bool SDLC_Component::fliterEvent(const SDL_Event& event) {
 bool SDLC_Component::handleEvent(const SDL_Event& event) {
     bool result = false;
 
-    if(fliterEvent(event)) {
+    if(fliterEvent(event) && defaultmouseButtonHandler(event,this)) {
 
         if(event.type == SDL_MOUSEMOTION) {
+            
             SDLC_Component *t = context->curCmp;
-
             if(t) {
                 while(t && ! t->findById(id)){
-                    if(t->outHandler) t->outHandler(t);
+                    t->defaultOutHandler(t);
                     t = t->header()->parent;
                 }
             }
@@ -183,19 +188,21 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
             t = context->curCmp;
             SDLC_Component * t_ = this;
             while(t_) {
-                // if(t){
-                //     if(! t_->findById(t->id)) {         
-                //         break;
-                //     }else {
-                //         if(t->inHandler) t->inHandler(t);
-                //     }
-                // }else {
-                //       if(t->inHandler) t->inHandler(t);
-                // }
+                /*
+                if(t){
+                    if(! t_->findById(t->id)) {         
+                        break;
+                    }else {
+                        if(t->inHandler) t->inHandler(t);
+                    }
+                }else {
+                      if(t->inHandler) t->inHandler(t);
+                }
+                */
                 if(t && t_->findById(t->id)) {       
                     break;
                 }else {
-                    if(t_->inHandler) t_->inHandler(t_);
+                    t_->defaultInHandler(t_);
                 }
                 t_ = t_->header()->parent;
             }
@@ -203,6 +210,7 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
         }
 
         if(event.type == SDL_MOUSEBUTTONDOWN) {
+            upLock = event.button.button;
             if(_movable){
                 context->curMvCmp = this;
                 context->status[0] = event.button.x;
@@ -212,13 +220,14 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
             }
         }
 
-        if(mouseButtonHandler && mouseButtonHandler(event,this)) {
-            result = true;
+        if(event.type == SDL_MOUSEBUTTONUP) {
+            upLock = 0;
         }
 
+        return true;
     }
 
-    return result;
+    return false;
 }
 
 void SDLC_Component::setOutHandler(OutHandler handler) {
@@ -255,7 +264,6 @@ void SDLC_Component::display() {
     else {
         return ;
     }
-
 }
 
 SDLC_Component* SDLC_Component::rear() {
@@ -389,47 +397,6 @@ SDLC_Component* SDLC_Component::removeById(int id) {
     return tmp;
 }
 
-SDLC_Component::SDLC_Component(SDLC_Context *context):SDLC_Component(context,0,0) {}
-SDLC_Component::SDLC_Component(SDLC_Context *context,int w,int h):SDLC_Component(context,0,0,w,h) {}
-SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h):SDLC_Component(context,x,y,w,h,0xffffffff){}
-SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h,Uint32 bg) :
-                                                        id(0),
-                                                        x(x),y(y),width(w),height(h),
-                                                        isvisible(true),
-                                                        upLock(0),
-                                                        context(context),
-                                                        brother(NULL),prebrother(NULL),
-                                                        child(NULL),parent(NULL),
-                                                        mouseButtonHandler(defaulthandler),
-                                                        outHandler(defaultOutHandler),inHandler(defaultInHandler),
-                                                        strickHandler(NULL),
-                                                        bgcolor(bg),_movable(false),
-                                                        intervalc(0),interval(0),
-                                                        canRaise(true)
-{
-    surface = SDL_CreateRGBSurface(0,width,height,32,rmask,gmask,bmask,amask);
-    SDL_SetSurfaceBlendMode(surface,SDL_BLENDMODE_BLEND);
-
-    if(SDL_MUSTLOCK(surface)) {SDL_LockSurface(surface);}
-    for(int i = 0; i< surface->w*surface->h; i++) {
-        *((Uint32*)(surface->pixels)+i) = bgcolor;
-    }
-    if(SDL_MUSTLOCK(surface)) {SDL_UnlockSurface(surface);}
-}
-    
-SDLC_Component::~SDLC_Component(){
-        if(id) {
-            removeById(id);
-        }
-        if(child) {
-            child -> parent = NULL;
-        }
-        if(brother) {
-            brother = prebrother = NULL;
-        }
-        SDL_FreeSurface(surface);
-}
-
 
 int SDLC_Component::getX() { return x; }
 int SDLC_Component::getY() { return y; }
@@ -452,10 +419,10 @@ void SDLC_Component::strick() {
         tmp->strick();
         tmp = tmp->brother;
     }
-    if(interval == 0 || !strickHandler)
+    if(interval == 0)
         return;
-    if(!intervalc) {
-        strickHandler(this);
+    if(!intervalc) {    
+        defaultStrickHandler(this);
     }
     intervalc += 1;
     intervalc %= interval;
@@ -489,4 +456,45 @@ void SDLC_Component::raise() {
     
     tag->setbrother(this);
     context->notifyUpdate();
+}
+
+SDLC_Component::SDLC_Component(SDLC_Context *context):SDLC_Component(context,0,0) {}
+SDLC_Component::SDLC_Component(SDLC_Context *context,int w,int h):SDLC_Component(context,0,0,w,h) {}
+SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h):SDLC_Component(context,x,y,w,h,0xffffffff){}
+SDLC_Component::SDLC_Component(SDLC_Context *context,int x,int y,int w,int h,Uint32 bg) :
+                                                        id(0),
+                                                        x(x),y(y),width(w),height(h),
+                                                        isvisible(true),
+                                                        upLock(0),
+                                                        context(context),
+                                                        brother(NULL),prebrother(NULL),
+                                                        child(NULL),parent(NULL),
+                                                        mouseButtonHandler(NULL),
+                                                        outHandler(NULL),inHandler(NULL),
+                                                        strickHandler(NULL),
+                                                        bgcolor(bg),_movable(false),
+                                                        intervalc(0),interval(0),
+                                                        canRaise(true)
+{
+    surface = SDL_CreateRGBSurface(0,width,height,32,rmask,gmask,bmask,amask);
+    SDL_SetSurfaceBlendMode(surface,SDL_BLENDMODE_BLEND);
+
+    if(SDL_MUSTLOCK(surface)) {SDL_LockSurface(surface);}
+    for(int i = 0; i< surface->w*surface->h; i++) {
+        *((Uint32*)(surface->pixels)+i) = bgcolor;
+    }
+    if(SDL_MUSTLOCK(surface)) {SDL_UnlockSurface(surface);}
+}
+    
+SDLC_Component::~SDLC_Component(){
+        if(id) {
+            removeById(id);
+        }
+        if(child) {
+            child -> parent = NULL;
+        }
+        if(brother) {
+            brother = prebrother = NULL;
+        }
+        SDL_FreeSurface(surface);
 }

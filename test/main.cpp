@@ -17,34 +17,30 @@ void onstrick(SDLC_Component *cmp) {
      }
 }
 
-bool onin(SDLC_Component *cmp) {
-     cmp->setbgcolor(0xff554455);
+void onin(SDLC_Component *cmp) {
+     cmp->setbgcolor(0xff573498);
      cmp->_context()->notifyUpdate();
-     return true;
+
 }
 
-bool onout(SDLC_Component *cmp) {
+void onout(SDLC_Component *cmp) {
      cmp->setbgcolor(0xff981121);
      cmp->_context()->notifyUpdate();
-     return true;
 }
+
 bool ondown(const SDL_Event &event, SDLC_Component *cmp) {
      switch (event.type)
      {
      case SDL_MOUSEBUTTONDOWN:
           cmp->setbgcolor(0xff102746);
-          std::cout << "down id:" << cmp->getId()<<"bg:"<< cmp->getBgcolor()<<std::endl;
           cmp->raise();
           break;
      case SDL_MOUSEBUTTONUP:
           cmp->setbgcolor(0xff573498);
-          
-          std::cout << "up id:" << cmp->getId()<<"bg:"<< cmp->getBgcolor()<<std::endl;
           break;
      default:
           break;
      }
-     
      cmp->_context()->notifyUpdate();
      return true;
 }
@@ -57,6 +53,12 @@ bool ondown_for_raise(const SDL_Event &event, SDLC_Component *cmp) {
      }
      return true;
 }
+
+bool ondown_for_handle(const SDL_Event &event, SDLC_Component *cmp) {
+
+     return false;
+}
+
 bool onmove(const SDL_Event &event,SDLC_Component *cmp) {
      ondown(event,cmp);
      switch (event.type)
@@ -90,11 +92,14 @@ int main(int argc ,char *argv[])
      Image c2_1(&context,0,0,100,100);
      c2_1.load("test.jpg");
      c2.setMovable(true);
+     c2_1.setMovable(true);
      //c2_1.setListener(ondown);
-     context.addComponent(&c2_1);
-     context.addComponent(&c2);
 
-     c2.setListener(ondown);
+     context.addComponent(&c2);
+     context.addComponent(&c2_1);
+
+     c2.setListener(ondown_for_raise);
+     c2_1.setListener(ondown_for_handle);
 
      for(int i = 0; i < 3; i++) {
           SDLC_Component *sdlc_i = new SDLC_Component(&context,0,0,-i*10+350,i*10+350,0xff000000+i*0x110000);
@@ -110,25 +115,25 @@ int main(int argc ,char *argv[])
                     sdlc_j->addComponent(sdlc_k);
                }
                sdlc_j->setListener(ondown_for_raise);
-               sdlc_j->setRaise(false);
                sdlc_j->setMovable(true);
                sdlc_i->addComponent(sdlc_j);
+               AnimationTest*animaiton = new AnimationTest(&context);
+               animaiton->setMovable(true);
+               animaiton->setListener(ondown_for_raise);
+               sdlc_i->addComponent(animaiton);
           }
           sdlc_i->setListener(ondown);
           sdlc_i->setOutHandler(onout);
           sdlc_i->setInHandler(onin);
           sdlc_i->setMovable(true);
           context.addComponent(sdlc_i);
-          AnimationTest*animaiton = new AnimationTest(&context);
-          animaiton->setMovable(true);
-          animaiton->setListener(ondown);
-          context.addComponent(animaiton);
-  
+
      }
+
      int ticket = SDL_GetTicks();
      while(!isquit)
      {
-          if(SDL_PollEvent(&event)){
+          while(SDL_PollEvent(&event)){
                switch(event.type)
                {
                     case SDL_QUIT :
@@ -137,13 +142,15 @@ int main(int argc ,char *argv[])
                }
                context.dispatch(event);
           }
-
-     if(SDL_GetTicks() - ticket > 15) {
-               context.updateWindow();  
-               ticket = SDL_GetTicks();
-               context.strick();
-     }
-     SDL_Delay(1);           
+          int t = SDL_GetTicks() ;
+          if(SDL_GetTicks() - ticket > 30) {
+                    context.updateWindow();  
+                    ticket = SDL_GetTicks();
+                    context.strick();
+          }
+          if(SDL_GetTicks()-t < 10){
+               SDL_Delay(10); 
+          }
      }
      return 0;
 }

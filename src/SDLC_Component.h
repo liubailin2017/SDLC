@@ -40,6 +40,11 @@ protected:
 
 public:
 
+    bool defaultmouseButtonHandler(const SDL_Event& event,SDLC_Component *cmp);
+    void defaultOutHandler(SDLC_Component *cmp);
+    void defaultInHandler(SDLC_Component *cmp);
+    void defaultStrickHandler(SDLC_Component *cmp);
+ 
     int abx();
     int aby();
     int getX();
