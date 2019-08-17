@@ -12,7 +12,6 @@ extern bool isContain(int x ,int y,int rx,int ry, int rw,int rh);
 
 bool SDLC_Component::defaultmouseButtonHandler(const SDL_Event& event,SDLC_Component *cmp) {
 
-
     if(mouseButtonHandler &&  mouseButtonHandler(event,this)) {
     if(event.type == SDL_MOUSEBUTTONDOWN) {
         std::cout <<"DOWN id:"<<cmp->getId()<<std::endl;
@@ -59,6 +58,7 @@ void SDLC_Component::setRaise(bool v) {
 }
 void SDLC_Component::setbgcolor(Uint32 bg) {
     this ->bgcolor = bg;
+    context->notifyUpdate();
 }
 Uint32 SDLC_Component::getBgcolor() {
     return bgcolor;
@@ -82,50 +82,21 @@ int SDLC_Component::aby() {
     }
 }
 
-bool  SDLC_Component::dispatchMouseMotion(const SDL_Event& event) {
+bool SDLC_Component::dispatch(const SDL_Event& event) {
+
     if(brother) {
-        if(brother -> dispatchMouseMotion(event)) {
+        if(brother -> dispatch(event)) {
             return true;
         }
     }
-
-    int bx = event.motion.x,by = event.motion.y;
-    int tx = abx(),ty = aby();
-
-    if(child) {
-        if(isContain(bx,by,tx,ty,width,height)) {
-            if(child -> dispatchMouseMotion(event)) {
-                return true;
-            }
-        }
-    }
-
-    if(handleEvent(event)) {
-        return true;
-    }
-    return false;
-}
-
-bool SDLC_Component::dispatchMouseButton(const SDL_Event& event) {
-
-    if(brother) {
-        if(brother -> dispatchMouseButton(event)) {
-            return true;
-        }
-    }
-
-    int bx = event.button.x,by = event.button.y;
-    int tx = abx(),ty = aby();
 
     if(child ) {
-        if( isContain(bx,by,tx,ty,width,height) || event.type == SDL_MOUSEBUTTONUP) {
-            if(child -> dispatchMouseButton(event)) {
-                return true;
-            }
+        if(child -> dispatch(event)) {
+            return true;
         }
     }
 
-    if(handleEvent(event)) {
+    if(fliterEvent(event) && handleEvent(event)) {
         return true;
     }
 
@@ -171,12 +142,11 @@ bool SDLC_Component::fliterEvent(const SDL_Event& event) {
 }
 
 bool SDLC_Component::handleEvent(const SDL_Event& event) {
-    bool result = false;
-
-    if(fliterEvent(event) && defaultmouseButtonHandler(event,this)) {
+    
+    if(defaultmouseButtonHandler(event,this)) {
 
         if(event.type == SDL_MOUSEMOTION) {
-            
+            // out event 
             SDLC_Component *t = context->curCmp;
             if(t) {
                 while(t && ! t->findById(id)){
@@ -184,7 +154,7 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
                     t = t->header()->parent;
                 }
             }
-
+            // --- 
             t = context->curCmp;
             SDLC_Component * t_ = this;
             while(t_) {
@@ -207,17 +177,18 @@ bool SDLC_Component::handleEvent(const SDL_Event& event) {
                 t_ = t_->header()->parent;
             }
             context ->curCmp = this;
-        }
-
-        if(event.type == SDL_MOUSEBUTTONDOWN) {
-            upLock = event.button.button;
-            if(_movable){
+            //move for cmp
+            if(_movable && context->curMvCmp == NULL && upLock == 1 ){
                 context->curMvCmp = this;
                 context->status[0] = event.button.x;
                 context->status[1] = event.button.y;
                 context->status[2] = x;
                 context->status[3] = y;
             }
+        }
+
+        if(event.type == SDL_MOUSEBUTTONDOWN) {
+            upLock = event.button.button;
         }
 
         if(event.type == SDL_MOUSEBUTTONUP) {
@@ -302,7 +273,7 @@ void SDLC_Component::updateSurface() {
 void SDLC_Component::setPostion(int x,int y) {
     this->x = x;
     this->y = y;
-    context->shouldRepatint = true;
+    context->notifyUpdate();
 }
 
 void SDLC_Component::setSize(int width,int height) {
@@ -311,7 +282,7 @@ void SDLC_Component::setSize(int width,int height) {
     SDL_SetSurfaceBlendMode(surface,SDL_BLENDMODE_BLEND);
     this->width = width;
     this->height = height;
-    context->shouldRepatint = true;
+    context->notifyUpdate();
     SDL_FreeSurface(tmp);
 }
 
@@ -329,6 +300,11 @@ void SDLC_Component::setvisible(bool isvisible) {
 
 void SDLC_Component::addComponent(SDLC_Component *cmp) {
     if(!cmp) return ;
+    if(cmp->context != context)  {
+        SDLC_LOG_.log(_2C "The Components do not match context");
+        SDLC_LOG_.notice(_2C "");
+        return ;
+    }    
     cmp->id = context->generateId();
     if(child) {
         SDLC_Component *node = child->rear();

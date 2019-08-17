@@ -19,13 +19,10 @@ void onstrick(SDLC_Component *cmp) {
 
 void onin(SDLC_Component *cmp) {
      cmp->setbgcolor(0xff573498);
-     cmp->_context()->notifyUpdate();
-
 }
 
 void onout(SDLC_Component *cmp) {
      cmp->setbgcolor(0xff981121);
-     cmp->_context()->notifyUpdate();
 }
 
 bool ondown(const SDL_Event &event, SDLC_Component *cmp) {
@@ -41,7 +38,7 @@ bool ondown(const SDL_Event &event, SDLC_Component *cmp) {
      default:
           break;
      }
-     cmp->_context()->notifyUpdate();
+
      return true;
 }
 bool ondown_for_raise(const SDL_Event &event, SDLC_Component *cmp) {
@@ -94,18 +91,18 @@ int main(int argc ,char *argv[])
      c2.setMovable(true);
      c2_1.setMovable(true);
      //c2_1.setListener(ondown);
-
-     context.addComponent(&c2);
      context.addComponent(&c2_1);
+     context.addComponent(&c2);
+   
 
      c2.setListener(ondown_for_raise);
      c2_1.setListener(ondown_for_handle);
 
-     for(int i = 0; i < 3; i++) {
+     for(int i = 0; i < 1; i++) {
           SDLC_Component *sdlc_i = new SDLC_Component(&context,0,0,-i*10+350,i*10+350,0xff000000+i*0x110000);
           for(int j = 0; j<3; j++) {
                SDLC_Component *sdlc_j = new SDLC_Component(&context,0,0,-j*10+150,j*10+150,0x9f000000+i*0x110000+j*0x1100);
-               for (int k = 0; k < 3; k++)
+               for (int k = 0; k < 1; k++)
                {
                     SDLC_Component *sdlc_k = new SDLC_Component(&context,0,0,-k*10+100,k*10+10,0x7f000000+i*0x110000+j*0x1100+k*0x11);
                     sdlc_k->setMovable(true);
@@ -119,7 +116,12 @@ int main(int argc ,char *argv[])
                sdlc_i->addComponent(sdlc_j);
                AnimationTest*animaiton = new AnimationTest(&context);
                animaiton->setMovable(true);
-               animaiton->setListener(ondown_for_raise);
+               
+               animaiton->setListener(ondown_for_handle);
+               if(j == 2) { 
+                    animaiton->setListener(ondown_for_raise);
+               }
+               animaiton->setPostion(j*50,0);
                sdlc_i->addComponent(animaiton);
           }
           sdlc_i->setListener(ondown);

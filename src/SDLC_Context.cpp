@@ -16,14 +16,13 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
         case    SDL_MOUSEBUTTONUP:
                 if(curMvCmp) {
                     curMvCmp = NULL;
-                //    return true;
                 }
-                if(components && components->dispatchMouseButton(event)) {
+                if(components && components->dispatch(event)) {
                     return true;
                 }
                 break;
         case    SDL_MOUSEBUTTONDOWN:
-                if(components && components->dispatchMouseButton(event)) {
+                if(components && components->dispatch(event)) {
                     return true;
                 }
                 break;
@@ -53,7 +52,7 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
                     return true;
                 }
 
-                if(components && components->dispatchMouseMotion(event)) {
+                if(components && components->dispatch(event)) {
                     return true;
                 }else {
                     SDLC_Component *t = curCmp;
@@ -76,7 +75,6 @@ bool SDLC_Context::dispatch(const SDL_Event& event) {
     if(onhandle) {
         return onhandle(event,this);
     }
-
     return false;
 }
 
@@ -90,6 +88,11 @@ SDLC_Component *SDLC_Context::addComponent(SDLC_Component *component) {
     if(component ->id) {
         SDLC_LOG_.log(_2C "The component have consisted in context:");
         SDLC_LOG_.log(component->id);
+        SDLC_LOG_.notice(_2C "");
+        return NULL;
+    }
+    if(component->context != this)  {
+        SDLC_LOG_.log(_2C "The Components do not match context");
         SDLC_LOG_.notice(_2C "");
         return NULL;
     }

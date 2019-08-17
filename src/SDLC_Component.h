@@ -69,8 +69,7 @@ public:
     int getId();
     /* api */
     bool fliterEvent(const SDL_Event& event) ;
-    bool dispatchMouseButton(const SDL_Event& event);
-    bool dispatchMouseMotion(const SDL_Event& event);
+    bool dispatch(const SDL_Event& event);
     bool handleEvent(const SDL_Event& event);
 
 
