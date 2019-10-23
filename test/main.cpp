@@ -68,6 +68,9 @@ bool onmove(const SDL_Event &event,SDLC_Component *cmp) {
      }
      return true;
 }
+#undef main
+extern int SDL_Init(Uint32 flags);
+
 int main(int argc ,char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);

@@ -5,10 +5,12 @@
 void Image::ondraw(SDL_Surface* surface) {
 }
 
-void Image::updateSurface() {
+void Image::updateSurface() { 
+    setSize(200,200);
     SDLC_Component::updateSurface();
+
     if(img) {
-        SDL_BlitSurface(img,NULL,surface,NULL);
+        SDL_BlitScaled(img,NULL,surface,NULL);
     }
 }
 
@@ -18,6 +20,7 @@ void Image::load(char name[]) {
        std::cout << IMG_GetError() << std::endl;
        return;
     }
+    SDL_SetSurfaceBlendMode(img,SDL_BLENDMODE_BLEND);
     this->setSize(img->w,img->h);
 }
 
